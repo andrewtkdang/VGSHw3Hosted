@@ -1,32 +1,117 @@
 <!doctype html>
-<html class="no-js" lang="">
-
+<html>
 <head>
-  <meta charset="utf-8">
-  <title>CSC 196V Assignment 3</title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="icon.png">
-  <!-- Place favicon.ico in the root directory -->
-
-  <link rel="stylesheet" href="css/normalize.css">
-  <link rel="stylesheet" href="css/main.css">
-
-  <meta name="theme-color" content="#fafafa">
-  <script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
 </head>
+<style>
+  div {
+    margin: 10px;
+  }
 
+  svg rect {
+    fill: #0080ff;
+  }
+
+  svg text {
+    fill: black;
+    font: 10px sans-serif;
+    text-anchor: end;
+  }
+</style>
 <body>
-  <!--[if IE]>
-    <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
-  <![endif]-->
+<h1>Video Game Sales</h1>
 
-  <p>Test</p>
-  <svg class="chart" width="500px" height="500px">
-  </svg>
+<div>
+  <b>Platform:</b>
+  <select id="platform"></select>
+</div>
 
+<svg></svg>
+
+<div>
+  <span id="description"></span>
+</div>
+
+<script>
+  const platformSelect = document.getElementById("platform");
+  const axisTranslate = 25;
+  const chartWidth = 800, chartHeight = 400;
+  const xMax = 85;
+  const yMax = 10;
+  const xScale = d3.scaleLinear()
+    .domain([0, xMax])
+    .range([0, chartWidth - axisTranslate]);
+  const yScale = d3.scaleLinear()
+    .domain([0, yMax])
+    .range([chartHeight - axisTranslate, 0]);
+  const xAxis = d3.axisBottom()
+    .scale(xScale)
+    .ticks(10);
+  const yAxis = d3.axisLeft()
+    .scale(yScale)
+    .ticks(0);
+  const barInterval = (chartHeight - axisTranslate) / 10;
+  const barHeight = barInterval - 10;
+  const svg = d3.select("svg")
+    .attr("width", chartWidth)
+    .attr("height", chartHeight);
+
+  window.onload = function () {
+    platformSelect.onchange = makeChart;
+    setOptions();
+    makeChart();
+  }
+
+  function setOptions() {
+    const platformArray = []
+    d3.csv("vgsales.csv", function (data) {
+      data.forEach(function (d) {
+        if (platformArray.indexOf(d.Platform) < 0) {
+          platformArray.push(d.Platform);
+        }
+      })
+      platformArray.sort();
+      platformArray.forEach(function (item) {
+        const option = document.createElement("option");
+        option.text = item;
+        option.value = item;
+        platformSelect.add(option);
+      })
+    });
+  }
+
+  function makeChart() {
+    svg.selectAll("g").remove();
+    svg.selectAll("rect").remove();
+    svg.selectAll("text").remove();
+    let count = 0;
+    d3.csv("vgsales.csv", function (data) {
+      data.forEach(function (d) {
+        if (d.Platform == platformSelect.value && count < 10) {
+          svg.append("rect")
+            .attr("x", 0)
+            .attr("y", barInterval * count)
+            .attr("width", (chartWidth - axisTranslate) * (d.Global_Sales / xMax))
+            .attr("height", barHeight)
+            .attr("transform", `translate(${axisTranslate}, 0)`);
+          svg.append("text")
+            .attr("x", chartWidth / 2)
+            .attr("y", barInterval * count + barHeight / 2)
+            .attr("height", barHeight)
+            .text(d.Name)
+            .attr("transform", `translate(${axisTranslate}, 0)`);
+          count++;
+        }
+      })
+      svg.append("g")
+        .attr("transform", `translate(${axisTranslate}, 0)`)
+        .call(yAxis);
+      svg.append("g")
+        .attr("transform", `translate(25, ${chartHeight - axisTranslate})`)
+        .call(xAxis)
+      document.getElementById("description").innerHTML = `Global sales of ${platformSelect.value} games in millions.`;
+    })
+  }
+</script>
 </body>
-
 </html>
