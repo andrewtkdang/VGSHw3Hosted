@@ -19,7 +19,12 @@
   }
 </style>
 <body>
-<h1>Video Game Sales</h1>
+
+<h1>
+  <title>Video Game Sales</title>
+  Video Game Sales
+</h1>
+
 
 <div>
   <b>Platform:</b>
@@ -95,7 +100,7 @@
             .attr("height", barHeight)
             .attr("transform", `translate(${axisTranslate}, 0)`);
           svg.append("text")
-            .attr("x", chartWidth / 2)
+            .attr("x", chartWidth - axisTranslate)
             .attr("y", barInterval * count + barHeight / 2)
             .attr("height", barHeight)
             .text(d.Name)
